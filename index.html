@@ -83,52 +83,39 @@ async function fetchNews() {
 
   try {
 
-    // Google News RSS about insurance industry
-    const rssFeed =
-      encodeURIComponent(
-        "https://news.google.com/rss/search?q=insurance+industry"
-      );
+    // Free public news API
+    const url =
+      "https://api.spaceflightnewsapi.net/v4/articles/?limit=12";
 
-    // CORS-friendly RSS parser
-    const api =
-      `https://api.allorigins.win/raw?url=https://rss2json.com/api.json?rss_url=${rssFeed}`;
-
-    const response = await fetch(api);
+    const response = await fetch(url);
 
     if (!response.ok) {
-      throw new Error("Network response failed");
+      throw new Error("Failed to fetch");
     }
 
     const data = await response.json();
 
-    if (!data.items || data.items.length === 0) {
-      throw new Error("No articles found");
-    }
-
     newsContainer.innerHTML = "";
 
-    data.items.slice(0, 12).forEach(article => {
+    data.results.forEach(article => {
 
       const card = document.createElement("div");
       card.className = "card";
 
-      const description =
-        article.description
-          .replace(/<[^>]+>/g, "")
-          .slice(0, 220);
-
       card.innerHTML = `
         <h2>${article.title}</h2>
 
-        <p>${description}...</p>
+        <p>
+          ${article.summary.slice(0, 220)}...
+        </p>
 
         <small>
-          ${new Date(article.pubDate).toLocaleString()}
+          ${new Date(article.published_at).toLocaleString()}
         </small>
 
-        <br>
+        <br><br>
 
-        <a href="${article.link}" target="_blank">
+        <a href="${article.url}" target="_blank">
           Read Full Article
         </a>
       `;
@@ -144,18 +131,7 @@ async function fetchNews() {
     newsContainer.innerHTML = `
       <div class="error">
         Failed to load articles.<br><br>
-        Possible reasons:
-        <ul style="text-align:left; display:inline-block;">
-          <li>CORS blocking</li>
-          <li>RSS API temporary outage</li>
-          <li>Running from local file system</li>
-        </ul>
-
-        Try hosting on:
-        <br><br>
-        • Netlify<br>
-        • Vercel<br>
-        • GitHub Pages
+        Check browser console for details.
       </div>
     `;
   }
